@@ -1,0 +1,10 @@
+.heading-contact {
+  margin-top: 15px;
+  margin-left: 40%;
+  font-family: 'Courier New', Courier, monospace;
+  /* font-family: 'Roboto', sans-serif; */
+  text-shadow: 2px 5px 4px gray;
+}
+.heading{
+  box-shadow:  4px 4px gray;
+}
