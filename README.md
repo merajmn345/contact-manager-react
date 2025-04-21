@@ -1,3 +1,38 @@
+# 📇 Contact Manager App
+
+A simple React-based Contact Manager where users can add, view, and delete contacts. Data is stored locally using the browser's localStorage.
+
+## 🚀 Features
+
+- Add new contacts (Name & Email)
+- Display a list of contacts
+- Delete a contact
+- Data persistence with localStorage
+- React Router for navigation
+- Responsive UI with clean design
+
+## 🛠️ Tech Stack
+
+- React
+- JavaScript (ES6+)
+- React Router DOM
+- HTML/CSS
+- LocalStorage
+
+## 📦 Installation
+
+```bash
+# Clone the repo
+git clone https://github.com/yourusername/contact-manager.git
+
+# Navigate into the project
+cd contact-manager
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm start
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
