@@ -1,40 +1,110 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import api from "../src/api/contacts.js";
 import AddContact from "./components/AddContact";
 import ContactList from "./components/ContactList";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import ContactDetails from "./components/ContactDetail";
-const LOCAL_STORAGE_KEY = "contacts";
+import DeleteCard from "./components/DeleteCard";
+import { v4 as uuidv4 } from "uuid";
+import EditContact from "./components/EditContact.jsx";
+
+// const LOCAL_STORAGE_KEY = "contacts";
 
 function App() {
-    const [contacts, setContacts] = useState(() => {
-        const retrived = localStorage.getItem(LOCAL_STORAGE_KEY);
-        return retrived ? JSON.parse(retrived) : [];
-    });
+    const [contacts, setContacts] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [searchResult, setSearchResult] = useState([]);
+    // Retriveed Contacts
+    const retrivedContacts = async () => {
+        const response = await api.get("/contacts");
+        return response.data;
+    };
 
-    function addHandler(newContact) {
-        setContacts((prev) => [...prev, newContact]);
-        console.log(contacts);
-    }
+    const searchHandler = (searchTerm) => {
+        if (searchTerm !== "") {
+            const filterResult = contacts.filter((contact) => {
+                return Object.values(contact).join(" ").toLowerCase().includes(searchTerm.toLowerCase());
+            });
+            setSearchResult(filterResult);
+        } else {
+            setSearchResult(contacts);
+        }
+    };
 
-    function removeContact(id) {
+    const addHandler = async (contact) => {
+        // setContacts((prev) => [...prev, newContact]);
+        console.log(contact);
+
+        const request = {
+            id: uuidv4(),
+            ...contact,
+        };
+
+        const response = await api.post("/contacts", request);
+        console.log(response);
+        setContacts([...contacts, response.data]);
+    };
+
+    const updateContactHandler = async (contact) => {
+        try {
+            console.log("contact id", contact.id);
+            const response = await api.put(`/contacts/${contact.id}`, contact);
+            console.log("Updated contact:", response.data);
+
+            const { id, name, email } = response.data;
+            setContacts(
+                contacts.map((contact) => {
+                    return contact.id === id ? { ...response.data } : contact;
+                })
+            );
+        } catch (error) {
+            console.error("Axios error:", error.message);
+            console.error("Full error object:", error);
+        }
+    };
+
+    async function removeContact(id) {
+        await api.delete(`/contacts/${id}`);
         const remainingContact = contacts.filter((contact) => {
             return contact.id != id;
         });
         setContacts(remainingContact);
+        console.log("Deleted");
     }
 
     useEffect(() => {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(contacts));
-    }, [contacts]);
+        const getAllContacts = async () => {
+            const allContacts = await retrivedContacts();
+            if (allContacts) setContacts(allContacts);
+        };
+        getAllContacts();
+    }, []);
+
+    // useEffect(() => {
+    //     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(contacts));
+    // }, [contacts]);
     return (
         <Router>
             <Title>Contact Manager</Title>
             <Container>
                 <Routes>
-                    <Route path="/" exact element={<ContactList contacts={contacts} removeContact={removeContact} />} />
+                    <Route
+                        path="/"
+                        exact
+                        element={
+                            <ContactList
+                                contacts={searchTerm < 1 ? contacts : searchResult}
+                                searchTerm={searchTerm}
+                                setSearchTerm={setSearchTerm}
+                                searchHandler={searchHandler}
+                            />
+                        }
+                    />
                     <Route path="add-contact" element={<AddContact addHandler={addHandler} />} />
                     <Route path="/contact-detail/:id" element={<ContactDetails />} />
+                    <Route path="/delete-confirmation/:id" element={<DeleteCard removeContact={removeContact} />} />
+                    <Route path="/edit/:id" element={<EditContact updateContactHandler={updateContactHandler} />} />
                 </Routes>
             </Container>
         </Router>
